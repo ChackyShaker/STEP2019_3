@@ -21,6 +21,13 @@ def readPlus(line, index):
 def readMinus(line, index):
   token = {'type': 'MINUS'}
   return token, index + 1
+def readMulti(line, index):
+  token = {'type': 'MULTI'}
+  return token, index + 1
+def readDivison(line, index):
+  token = {'type': 'DIVISION'}
+  return token, index + 1
+
 
 #数字と記号で分類したリストを作成
 def tokenize(line):
@@ -33,6 +40,10 @@ def tokenize(line):
       (token, index) = readPlus(line, index)
     elif line[index] == '-':
       (token, index) = readMinus(line, index)
+    elif line[index] == '/':
+      (token, index) = readDivison(line, index)
+    elif line[index] == '*':
+      (token, index) = readMulti(line, index)
     else:
       print('Invalid character found: ' + line[index])
       exit(1)#エラーによる終了
@@ -41,9 +52,24 @@ def tokenize(line):
 
 #演算
 def evaluate(tokens):
+  junk_ans = []
   answer = 0
   tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
   index = 1
+  while index < len(tokens):
+    if tokens[index]['type'] == 'NUMBER':
+      if tokens[index - 1]['type'] == 'PLUS' or tokens[index - 1]['type'] == 'MINUS':
+          junk_ans.append(tokens[index - 1])
+          junk_ans.append(tokens[index])
+      elif tokens[index - 1]['type'] == 'DIVISION':
+          junk_ans.append(tokens[index - 2]['number']/tokens[index]['number'])
+      elif tokens[index - 1]['type'] == 'MULTI':
+          junk_ans.append(tokens[index - 2]['number']*tokens[index]['number'])
+      else:
+        print('Invalid syntax')
+        exit(1)
+    index += 1
+
   while index < len(tokens):
     if tokens[index]['type'] == 'NUMBER':
       if tokens[index - 1]['type'] == 'PLUS':
@@ -70,6 +96,7 @@ def runTest():
   print("==== Test started! ====")
   test("1+2")
   test("1.0+2.1-3")
+  test("1+2/2")
   print("==== Test finished! ====\n")
 
 runTest()
@@ -80,6 +107,7 @@ while True:
   tokens = tokenize(line)
   answer = evaluate(tokens)
   print("answer = %f\n" % answer)
+  
 
 #
 
