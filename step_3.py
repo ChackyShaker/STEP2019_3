@@ -51,36 +51,57 @@ def tokenize(line):
   return tokens
 
 #演算
-def evaluate(tokens):
-  junk_ans = []
-  answer = 0
-  tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
-  index = 1
-  while index < len(tokens):
-    if tokens[index]['type'] == 'NUMBER':
-      if tokens[index - 1]['type'] == 'PLUS' or tokens[index - 1]['type'] == 'MINUS':
-          junk_ans.append(tokens[index - 1])
-          junk_ans.append(tokens[index])
-      elif tokens[index - 1]['type'] == 'DIVISION':
-          junk_ans.append(tokens[index - 2]['number']/tokens[index]['number'])
-      elif tokens[index - 1]['type'] == 'MULTI':
-          junk_ans.append(tokens[index - 2]['number']*tokens[index]['number'])
-      else:
-        print('Invalid syntax')
-        exit(1)
-    index += 1
+def simplify_sub(tokens):
+    tokens_junk =[]
+    result = 0
+    for i in range(len(tokens)):
+        if tokens[i]['type'] == 'DIVISION':
+            result += tokens[i-1]['number']/tokens[i+1]['number']
+            tokens_junk.append(tokens[:i-1])
+            tokens_junk.insert(i-1,result)
+            tokens_junk.append(tokens[i:])
+            break
+        elif tokens[i]['type'] == 'MULTI':
+            result += tokens[i-1]['number']*tokens[i+1]['number']
+            tokens_junk.append(tokens[:i-1])
+            tokens_junk.insert(i-1,result)
+            tokens_junk.append(tokens[i:])
+            break
+        else:
+            pass
+    print(tokens_junk)
 
-  while index < len(tokens):
-    if tokens[index]['type'] == 'NUMBER':
-      if tokens[index - 1]['type'] == 'PLUS':
-        answer += tokens[index]['number']
-      elif tokens[index - 1]['type'] == 'MINUS':
-        answer -= tokens[index]['number']
-      else:
-        print('Invalid syntax')
-        exit(1)
-    index += 1
-  return answer
+    
+
+def simplify(tokens_junk):
+    idx = 0
+    if tokens_junk[idx]['type'] == 'DIVISION' or tokens_junk[idx]['type'] == 'MULTI':
+        simplify_sub(tokens_junk)
+    else:
+        pass
+    idx += 1
+    return tokens_junk
+
+
+
+def evaluate(tokens_junk):
+    answer = 0
+    tokens_junk.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
+    index = 1
+    while index < len(tokens_junk):
+        if tokens_junk[index]['type'] == 'NUMBER':
+            if tokens_junk[index - 1]['type'] == 'PLUS':
+                answer += tokens_junk[index]['number']
+            elif tokens_junk[index - 1]['type'] == 'MINUS':
+                answer -= tokens_junk[index]['number']
+                #else:
+                #print('Invalid syntax')
+                #exit(1)
+        index += 1
+    return answer
+                                        
+
+
 
 #テスト入力
 def test(line):
@@ -105,9 +126,9 @@ while True:
   print('> ', end="")
   line = input()
   tokens = tokenize(line)
-  answer = evaluate(tokens)
+  tokens_junk = simplify_sub(tokens)
+  answer = evaluate(tokens_junk)
   print("answer = %f\n" % answer)
-  
 
 #
 
