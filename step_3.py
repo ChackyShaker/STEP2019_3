@@ -51,36 +51,33 @@ def tokenize(line):
   return tokens
 
 #演算
-def simplify_sub(tokens):
+def simplify_sub(tokens,idx):
     tokens_junk =[]
     result = 0
-    for i in range(len(tokens)):
-        if tokens[i]['type'] == 'DIVISION':
-            result += tokens[i-1]['number']/tokens[i+1]['number']
-            tokens_junk.append(tokens[:i-1])
-            tokens_junk.insert(i-1,result)
-            tokens_junk.append(tokens[i:])
-            break
-        elif tokens[i]['type'] == 'MULTI':
-            result += tokens[i-1]['number']*tokens[i+1]['number']
-            tokens_junk.append(tokens[:i-1])
-            tokens_junk.insert(i-1,result)
-            tokens_junk.append(tokens[i:])
-            break
-        else:
-            pass
+    if tokens[idx]['type'] == 'DIVISION':
+        result += tokens[idx-1]['number']/tokens[idx+1]['number']
+        for i in range(idx-1):
+                tokens_junk.append(tokens[i])
+        tokens_junk.insert(idx-1,{'type': 'NUMBER', 'number': result})
+    elif tokens[i]['type'] == 'MULTI':
+        result += tokens[idx-1]['number']*tokens[idx+1]['number']
+        for i in range(idx-1):
+                tokens_junk.append(tokens[i])
+        tokens_junk.insert(idx-1,{'type': 'NUMBER', 'number': result})
+
     print(tokens_junk)
+    print(type(tokens_junk))
+    return tokens_junk
 
     
 
-def simplify(tokens_junk):
+def simplify(tokens):
     idx = 0
-    if tokens_junk[idx]['type'] == 'DIVISION' or tokens_junk[idx]['type'] == 'MULTI':
-        simplify_sub(tokens_junk)
+    if tokens[idx]['type'] == 'DIVISION' or tokens[idx]['type'] == 'MULTI':
+        (tokens,idx) = simplify_sub(tokens,idx)
     else:
         pass
     idx += 1
-    return tokens_junk
 
 
 
@@ -117,7 +114,7 @@ def runTest():
   print("==== Test started! ====")
   test("1+2")
   test("1.0+2.1-3")
-  test("1+2/2")
+  #test("1+2/2*2")
   print("==== Test finished! ====\n")
 
 runTest()
@@ -126,7 +123,7 @@ while True:
   print('> ', end="")
   line = input()
   tokens = tokenize(line)
-  tokens_junk = simplify_sub(tokens)
+  tokens_junk = simplify(tokens)
   answer = evaluate(tokens_junk)
   print("answer = %f\n" % answer)
 
